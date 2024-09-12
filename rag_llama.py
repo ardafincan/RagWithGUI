@@ -1,6 +1,7 @@
+import user_gui
+import os
 from pypdf import PdfReader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-import os
 
 reader = PdfReader("/Users/aliardafincan/Development/RAG-Implementation/T3AI_HACKATHON_ŞARTNAMESİ_IZQ61.pdf")
 text = ""
@@ -59,7 +60,7 @@ class RAGApplication:
 
 rag_application = RAGApplication(retriever, rag_chain)
 
-question = input("Sorunuzu yazınız: ")
+question = user_gui.user_message 
 answer = rag_application.run(question)
 print("Question:", question)
 print("Answer:", answer)
