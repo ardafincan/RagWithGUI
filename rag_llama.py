@@ -1,4 +1,4 @@
-import user_gui
+from user_gui import ChatbotApp
 import os
 from pypdf import PdfReader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -60,7 +60,7 @@ class RAGApplication:
 
 rag_application = RAGApplication(retriever, rag_chain)
 
-question = user_gui.user_message 
+question = ChatbotApp.message_receiver()
 answer = rag_application.run(question)
 print("Question:", question)
 print("Answer:", answer)

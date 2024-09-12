@@ -1,6 +1,9 @@
-import rag_llama
+import os
+import asyncio
 import tkinter as tk
 from tkinter import scrolledtext
+from pypdf import PdfReader
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 class ChatbotApp:
     def __init__(self, root):
@@ -41,10 +44,14 @@ class ChatbotApp:
     def send_message(self):
         user_message = self.user_input.get()
         if user_message.strip():
-            self.display_message("You: " + user_message)
+            self.display_message("\nYou: " + user_message)
             response = self.get_chatbot_response(user_message)
             self.display_message("Chatbot: " + response)
             self.user_input.delete(0, tk.END)
+
+    def message_receiver(self):
+        user_message = self.user_input.get()
+        return user_message
 
     def send_message_event(self, event):
         self.send_message()
@@ -56,13 +63,74 @@ class ChatbotApp:
         self.chat_history.config(state='disabled')
         self.chat_history.yview(tk.END)
 
-    def get_chatbot_response(self, user_message):
-        # Basic response logic for demonstration
-        # Replace this with actual chatbot logic or API call
-        return rag_llama.answer
-
     def focus_input(self, event):
         self.user_input.focus_set()  # Set focus to the user input field
+
+    # LLM Part 
+
+    def get_chatbot_response(self, user_message):
+        reader = PdfReader("/Users/aliardafincan/Development/RAG-Implementation/T3AI_HACKATHON_ŞARTNAMESİ_IZQ61.pdf")
+        text = ""
+        for page in reader.pages:
+            text += page.extract_text() + "\n"
+
+        text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(
+            chunk_size=250, chunk_overlap=100
+        )
+
+        doc_splits = text_splitter.split_text(text)
+
+        from langchain_community.vectorstores import SKLearnVectorStore
+        from langchain_openai import OpenAIEmbeddings
+
+        vectorstore = SKLearnVectorStore.from_texts(
+            texts=doc_splits,
+            embedding=OpenAIEmbeddings(openai_api_key="sk-proj-ozsRlQGengo3IrYKq1ppT3BlbkFJpftzn4iwQaWpOJPV5oSp"),
+        )
+        retriever = vectorstore.as_retriever(k=4)
+
+        from langchain_ollama import ChatOllama
+        from langchain.prompts import PromptTemplate
+        from langchain_core.output_parsers import StrOutputParser
+
+        prompt = PromptTemplate(
+            template="""Sen bir döküman uzmanı yapay zeka asistansın.
+            Soruyu cevaplamak için aşağıdaki dökümanları kullan.
+            Cevabı bilmiyorsan sadece 'Bu konuda bir bilgim yok' de.
+            Question: {question}
+            Documents: {documents}
+            Answer:
+            """,
+            input_variables=["question", "documents"],
+        )
+
+
+        llm = ChatOllama(
+            model="llama3.1",
+            temperature=0.2,
+        )
+
+        rag_chain = prompt | llm | StrOutputParser()
+
+
+        class RAGApplication:
+            def __init__(self, retriever, rag_chain):
+                self.retriever = retriever
+                self.rag_chain = rag_chain
+            def run(self, question):
+                documents = self.retriever.invoke(question)
+                doc_texts = "\\n".join([doc.page_content for doc in documents])
+                answer = self.rag_chain.invoke({"question": question, "documents": doc_texts})
+                return answer
+            
+
+        rag_application = RAGApplication(retriever, rag_chain)
+
+        question =self.message_receiver()
+        answer = rag_application.run(question)
+        print("Question:", question)
+        print("Answer:", answer)
+        return answer
 
 # Create the main window
 root = tk.Tk()
@@ -70,3 +138,5 @@ app = ChatbotApp(root)
 
 # Run the application
 root.mainloop()
+
+
