@@ -85,7 +85,7 @@ class ChatbotApp:
 
         vectorstore = SKLearnVectorStore.from_texts(
             texts=doc_splits,
-            embedding=OpenAIEmbeddings(openai_api_key="sk-proj-ozsRlQGengo3IrYKq1ppT3BlbkFJpftzn4iwQaWpOJPV5oSp"),
+            embedding=OpenAIEmbeddings(openai_api_key="openai-api-key"),
         )
         retriever = vectorstore.as_retriever(k=4)
 
