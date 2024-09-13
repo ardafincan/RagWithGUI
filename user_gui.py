@@ -75,7 +75,7 @@ class ChatbotApp:
             text += page.extract_text() + "\n"
 
         text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(
-            chunk_size=250, chunk_overlap=100
+            chunk_size=350, chunk_overlap=100
         )
 
         doc_splits = text_splitter.split_text(text)
