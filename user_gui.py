@@ -5,6 +5,8 @@ from tkinter import scrolledtext
 from pypdf import PdfReader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
+files_list = os.listdir("./docs")
+
 class ChatbotApp:
     def __init__(self, root):
         self.root = root
@@ -68,24 +70,27 @@ class ChatbotApp:
 
     # LLM Part 
 
-    def get_chatbot_response(self, user_message):
-        reader = PdfReader("./T3AI_HACKATHON_ŞARTNAMESİ_IZQ61.pdf")
+    def get_text(self, files_list):
         text = ""
-        for page in reader.pages:
-            text += page.extract_text() + "\n"
+        for file in files_list:
+            reader = PdfReader("./docs/" + file)
+            for page in reader.pages:
+                text += page.extract_text() + "\n"
 
-        text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(
-            chunk_size=350, chunk_overlap=100
-        )
+            text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(
+                chunk_size=350, chunk_overlap=100
+            )
+        print(len(text))
+        return text_splitter.split_text(text)
 
-        doc_splits = text_splitter.split_text(text)
+    def get_chatbot_response(self, user_message):
 
         from langchain_community.vectorstores import SKLearnVectorStore
         from langchain_openai import OpenAIEmbeddings
 
         vectorstore = SKLearnVectorStore.from_texts(
-            texts=doc_splits,
-            embedding=OpenAIEmbeddings(openai_api_key="openai-api-key"),
+            texts=self.get_text(files_list),
+            embedding=OpenAIEmbeddings(openai_api_key="openai_api_key"),
         )
         retriever = vectorstore.as_retriever(k=4)
 
