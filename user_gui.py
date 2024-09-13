@@ -69,7 +69,7 @@ class ChatbotApp:
     # LLM Part 
 
     def get_chatbot_response(self, user_message):
-        reader = PdfReader("/Users/aliardafincan/Development/RAG-Implementation/T3AI_HACKATHON_ŞARTNAMESİ_IZQ61.pdf")
+        reader = PdfReader("./T3AI_HACKATHON_ŞARTNAMESİ_IZQ61.pdf")
         text = ""
         for page in reader.pages:
             text += page.extract_text() + "\n"
