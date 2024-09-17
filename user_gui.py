@@ -1,5 +1,4 @@
 import os
-import asyncio
 import tkinter as tk
 from tkinter import scrolledtext
 from pypdf import PdfReader
@@ -81,7 +80,11 @@ class ChatbotApp:
                 chunk_size=350, chunk_overlap=100
             )
         print(len(text))
+        f = open("yonetmelikler.txt", "x")
+        f.write(text)
+        f.close
         return text_splitter.split_text(text)
+
 
     def get_chatbot_response(self, user_message):
 
